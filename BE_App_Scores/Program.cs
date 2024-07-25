@@ -1,11 +1,12 @@
 using BE_App_Scores.Models.Authentication;
+using BE_App_Scores.Service.Models;
+using BE_App_Scores.Service.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
-
 
 var configuration = builder.Configuration;
 
@@ -27,6 +28,14 @@ builder.Services.AddAuthentication(options =>
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
 });
+
+
+//Add Email configs
+var emailConfig = configuration.GetSection("EmailConfiguration").Get<EmailConfiguration>();
+
+builder.Services.AddSingleton(emailConfig);
+builder.Services.AddScoped<IEmailService, EmailService>();
+
 
 // Add services to the container.
 
