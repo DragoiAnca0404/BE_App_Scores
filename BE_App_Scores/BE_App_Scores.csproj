@@ -29,4 +29,8 @@
     <None Include="C:\Users\Admin\Documents\GitHub\BE_App_Scores\BE_App_Scores\.editorconfig" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\BE_App_Scores.Service\BE_App_Scores.Service.csproj" />
+  </ItemGroup>
+
 </Project>
