@@ -28,7 +28,6 @@ namespace BE_App_Scores.Controllers
         [HttpPost]
         public async Task<IActionResult> Register([FromBody] RegisterUser registerUser, string role)
         {
-            //Check user exist 
 
             //Check user exist
             var userExist = await _userManager.FindByEmailAsync(registerUser.Email);
@@ -52,27 +51,31 @@ namespace BE_App_Scores.Controllers
 
                 var result = await _userManager.CreateAsync(user, registerUser.Password);
 
-
                 if (!result.Succeeded)
                 {
-
                     return StatusCode(StatusCodes.Status500InternalServerError,
                     new Response { Status = "Error", Message = "User Failed to Create" });
                 }
 
                 //Add role to the user ...
-
                 await _userManager.AddToRoleAsync(user, role);
 
+
+                //Add Token to Verify the email...
+                var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                var confirmationLink = Url.Action(nameof(ConfirmEmail), "Authentication", new { token, email = user.Email }, Request.Scheme);
+                var message = new Message(new string[] { user.Email!}, "Confirmation email link", confirmationLink!);
+                _emailService.SendEmail(message);
+
+
+
                 return StatusCode(StatusCodes.Status200OK,
-                new Response { Status = "Success", Message = "User Created SuccessFully" });
+                         new Response { Status = "Success", Message = $"User Created $ Email Sent to {user.Email} Successfully!" });
 
             }
             else {
                 return StatusCode(StatusCodes.Status500InternalServerError,
                 new Response { Status = "Error", Message = "This Role doesn't exist" });
-
-
             }
 
 
@@ -91,6 +94,24 @@ namespace BE_App_Scores.Controllers
             _emailService.SendEmail(message);
             return StatusCode(StatusCodes.Status200OK,
                    new Response { Status = "Success", Message = "Email Success sent!" });
+        }
+
+        [HttpGet("ConfirmEmail")]
+        public async Task<IActionResult> ConfirmEmail(string token, string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user != null)
+            {
+                var result = await _userManager.ConfirmEmailAsync(user, token);
+                if (result.Succeeded)
+                {
+                    return StatusCode(StatusCodes.Status200OK, 
+                        new Response { Status = "Success", Message = "Email Verified Successfully" });
+                }
+            }
+
+            return StatusCode(StatusCodes.Status500InternalServerError, 
+                new Response { Status = "Error", Message = "This user doesn't exist!" });
         }
     }
 }
