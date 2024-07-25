@@ -18,10 +18,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Models\Authentication\Login\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <EditorConfigFiles Remove="C:\Users\Admin\Documents\GitHub\BE_App_Scores\BE_App_Scores\.editorconfig" />
   </ItemGroup>
 
