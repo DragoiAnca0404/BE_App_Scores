@@ -24,6 +24,7 @@ namespace BE_App_Scores.Controllers
         private readonly IConfiguration _configuration;
         private readonly IEmailService _emailService;
         private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly ILogger<AuthenticationController> _logger; // Add this line
 
 
 
@@ -31,7 +32,8 @@ namespace BE_App_Scores.Controllers
             RoleManager<IdentityRole> roleManager,
             IEmailService emailService,
             IConfiguration configuration,
-             SignInManager<IdentityUser> signInManager
+             SignInManager<IdentityUser> signInManager,
+             ILogger<AuthenticationController> logger
             )
         {
             _userManager = userManager;
@@ -39,6 +41,8 @@ namespace BE_App_Scores.Controllers
             _emailService = emailService;
             _configuration = configuration;
             _signInManager = signInManager;
+            _logger = logger; // Initialize the logger
+
         }
 
         [HttpPost]
@@ -181,36 +185,57 @@ namespace BE_App_Scores.Controllers
         public async Task<IActionResult> LoginWithOTP(string code, string username)
         {
             var user = await _userManager.FindByNameAsync(username);
-            var signIn = await _signInManager.TwoFactorSignInAsync("Email", code, false, false);
-            if (signIn.Succeeded)
+            if (user == null)
             {
-                if (user != null)
-                {
-                    var authClaims = new List<Claim>
-                {
-                    new Claim(ClaimTypes.Name, user.UserName),
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                };
-                    var userRoles = await _userManager.GetRolesAsync(user);
-                    foreach (var role in userRoles)
-                    {
-                        authClaims.Add(new Claim(ClaimTypes.Role, role));
-                    }
-
-                    var jwtToken = GetToken(authClaims);
-
-                    return Ok(new
-                    {
-                        token = new JwtSecurityTokenHandler().WriteToken(jwtToken),
-                        expiration = jwtToken.ValidTo
-                    });
-                    //returning the token...
-
-                }
+                _logger.LogWarning("User not found: {username}", username);
+                return Unauthorized(new Response { Status = "Error", Message = "User not found." });
             }
-            return StatusCode(StatusCodes.Status404NotFound,
-                new Response { Status = "Success", Message = $"Invalid Code" });
+
+            _logger.LogInformation("User found: {username}", username);
+
+            _logger.LogInformation("Attempting 2FA sign in for user: {username} with code: {code}", username, code);
+            var signIn = await _signInManager.TwoFactorSignInAsync("Email", code, false, false);
+
+            if (!signIn.Succeeded)
+            {
+                _logger.LogWarning("2FA sign in failed for user: {username}, code: {code}", username, code);
+
+                if (signIn.IsLockedOut)
+                {
+                    _logger.LogWarning("User is locked out.");
+                    return StatusCode(StatusCodes.Status423Locked, new Response { Status = "Error", Message = "User is locked out." });
+                }
+                if (signIn.IsNotAllowed)
+                {
+                    _logger.LogWarning("User is not allowed to sign in.");
+                    return StatusCode(StatusCodes.Status403Forbidden, new Response { Status = "Error", Message = "User is not allowed to sign in." });
+                }
+                _logger.LogWarning("2FA sign in failed due to invalid code.");
+                return Unauthorized(new Response { Status = "Error", Message = "Invalid 2FA code." });
+            }
+
+            _logger.LogInformation("2FA sign in succeeded for user: {username}", username);
+
+            var authClaims = new List<Claim>
+    {
+        new Claim(ClaimTypes.Name, user.UserName),
+        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+    };
+            var userRoles = await _userManager.GetRolesAsync(user);
+            foreach (var role in userRoles)
+            {
+                authClaims.Add(new Claim(ClaimTypes.Role, role));
+            }
+
+            var jwtToken = GetToken(authClaims);
+            return Ok(new
+            {
+                token = new JwtSecurityTokenHandler().WriteToken(jwtToken),
+                expiration = jwtToken.ValidTo
+            });
         }
+
+
 
         [HttpPost]
         [AllowAnonymous]
