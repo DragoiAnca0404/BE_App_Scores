@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using BE_App_Scores.Models.Diagram_Database;
 
 namespace BE_App_Scores.Models.Authentication
 {
@@ -15,6 +16,13 @@ namespace BE_App_Scores.Models.Authentication
         {
             base.OnModelCreating(builder);
             SeedRoles(builder);
+
+
+            builder.Entity<Profile>()
+     .HasOne(p => p.User)
+     .WithMany()
+     .HasForeignKey(p => p.UserId)
+     .OnDelete(DeleteBehavior.Cascade); // Sau alt comportament de ștergere dorit
         }
 
        private static void SeedRoles(ModelBuilder builder)
