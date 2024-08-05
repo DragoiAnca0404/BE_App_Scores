@@ -12,6 +12,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Identity.Data;
+using BE_App_Scores.Utils;
 
 namespace BE_App_Scores.Controllers
 {
@@ -141,93 +142,38 @@ namespace BE_App_Scores.Controllers
         public async Task<IActionResult> Login([FromBody] LoginModel model)
         {
             var user = await _userManager.FindByNameAsync(model.Username);
-            if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
+            if (user == null || !await _userManager.CheckPasswordAsync(user, model.Password))
             {
-                var userRoles = await _userManager.GetRolesAsync(user);
-                var authClaims = new List<Claim>
+                return Unauthorized(new Response { Status = "Error", Message = "Invalid username or password." });
+            }
+
+            if (await _userManager.GetTwoFactorEnabledAsync(user))
+            {
+                // Generate and send the 2FA code
+                var token = await _userManager.GenerateTwoFactorTokenAsync(user, "Email");
+                var message = new Message(new string[] { user.Email }, "OTP Confirmation", token);
+                _emailService.SendEmail(message);
+
+                return Ok(new Response
                 {
-                    new Claim(ClaimTypes.Name, user.UserName),
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                };
-                foreach (var userRole in userRoles)
-                {
-                    authClaims.Add(new Claim(ClaimTypes.Role, userRole));
-                }
-
-                if (user.TwoFactorEnabled)
-                {
-                    await _signInManager.SignOutAsync();
-                    await _signInManager.PasswordSignInAsync(user, model.Password, false, true);
-
-
-                    var token = await _userManager.GenerateTwoFactorTokenAsync(user, "Email");
-                    var message = new Message(new string[] { user.Email! }, "OTP Confrimation", token);
-                    _emailService.SendEmail(message);
-
-                    return StatusCode(StatusCodes.Status200OK,
-                    new Response { Status = "Success", Message = $"We have sent an OTP to your Email {user.Email}" });
-                }
-
-
-                    var jwtToken = GetToken(authClaims);
-                return Ok(new
-                {
-                    token = new JwtSecurityTokenHandler().WriteToken(jwtToken),
-                    expiration = jwtToken.ValidTo
+                    Status = "Success",
+                    Message = $"2FA code sent to {user.Email}."
                 });
             }
-            return Unauthorized();
-        }
 
-
-        [HttpPost]
-        [Route("login-2FA")]
-        public async Task<IActionResult> LoginWithOTP(string code, string username)
-        {
-            var user = await _userManager.FindByNameAsync(username);
-            if (user == null)
-            {
-                _logger.LogWarning("User not found: {username}", username);
-                return Unauthorized(new Response { Status = "Error", Message = "User not found." });
-            }
-
-            _logger.LogInformation("User found: {username}", username);
-
-            _logger.LogInformation("Attempting 2FA sign in for user: {username} with code: {code}", username, code);
-            var signIn = await _signInManager.TwoFactorSignInAsync("Email", code, false, false);
-
-            if (!signIn.Succeeded)
-            {
-                _logger.LogWarning("2FA sign in failed for user: {username}, code: {code}", username, code);
-
-                if (signIn.IsLockedOut)
-                {
-                    _logger.LogWarning("User is locked out.");
-                    return StatusCode(StatusCodes.Status423Locked, new Response { Status = "Error", Message = "User is locked out." });
-                }
-                if (signIn.IsNotAllowed)
-                {
-                    _logger.LogWarning("User is not allowed to sign in.");
-                    return StatusCode(StatusCodes.Status403Forbidden, new Response { Status = "Error", Message = "User is not allowed to sign in." });
-                }
-                _logger.LogWarning("2FA sign in failed due to invalid code.");
-                return Unauthorized(new Response { Status = "Error", Message = "Invalid 2FA code." });
-            }
-
-            _logger.LogInformation("2FA sign in succeeded for user: {username}", username);
-
+            // Generate JWT if 2FA is not enabled
+            var userRoles = await _userManager.GetRolesAsync(user);
             var authClaims = new List<Claim>
     {
         new Claim(ClaimTypes.Name, user.UserName),
         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
     };
-            var userRoles = await _userManager.GetRolesAsync(user);
-            foreach (var role in userRoles)
+            foreach (var userRole in userRoles)
             {
-                authClaims.Add(new Claim(ClaimTypes.Role, role));
+                authClaims.Add(new Claim(ClaimTypes.Role, userRole));
             }
-
             var jwtToken = GetToken(authClaims);
+
             return Ok(new
             {
                 token = new JwtSecurityTokenHandler().WriteToken(jwtToken),
@@ -235,6 +181,44 @@ namespace BE_App_Scores.Controllers
             });
         }
 
+
+
+
+        [HttpPost]
+        [Route("login-2FA")]
+        public async Task<IActionResult> LoginWithOTP([FromBody] TwoFactorLoginModel model)
+        {
+            var user = await _userManager.FindByNameAsync(model.Username);
+            if (user == null)
+            {
+                return Unauthorized(new Response { Status = "Error", Message = "User not found." });
+            }
+
+            var isValid = await _userManager.VerifyTwoFactorTokenAsync(user, "Email", model.Code);
+            if (!isValid)
+            {
+                return Unauthorized(new Response { Status = "Error", Message = "Invalid 2FA code." });
+            }
+
+            // Generate JWT after successful 2FA validation
+            var userRoles = await _userManager.GetRolesAsync(user);
+            var authClaims = new List<Claim>
+    {
+        new Claim(ClaimTypes.Name, user.UserName),
+        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+    };
+            foreach (var userRole in userRoles)
+            {
+                authClaims.Add(new Claim(ClaimTypes.Role, userRole));
+            }
+            var jwtToken = GetToken(authClaims);
+
+            return Ok(new
+            {
+                token = new JwtSecurityTokenHandler().WriteToken(jwtToken),
+                expiration = jwtToken.ValidTo
+            });
+        }
 
 
         [HttpPost]
