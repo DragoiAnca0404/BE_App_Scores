@@ -9,7 +9,12 @@
         public int IdEchipa { get; set; }
         public Echipe Echipa { get; set; }
 
-        public int Scor { get; set; }
-        public DateTime Data { get; set; }
+
+        public int IdMeci { get; set; }
+        public Meci Meci { get; set; }
+
+
+        public int IdScor { get; set; }
+        public Scoruri Scoruri { get; set; }
     }
 }

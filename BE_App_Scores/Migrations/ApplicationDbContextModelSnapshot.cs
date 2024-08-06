@@ -82,17 +82,57 @@ namespace BE_App_Scores.Migrations
                     b.Property<int>("IdEchipa")
                         .HasColumnType("int");
 
+                    b.Property<int>("IdMeci")
+                        .HasColumnType("int");
+
+                    b.Property<int>("IdScor")
+                        .HasColumnType("int");
+
+                    b.HasKey("IdActivitate", "IdEchipa", "IdMeci", "IdScor");
+
+                    b.HasIndex("IdEchipa");
+
+                    b.HasIndex("IdMeci");
+
+                    b.HasIndex("IdScor");
+
+                    b.ToTable("GestionareMeciuri");
+                });
+
+            modelBuilder.Entity("BE_App_Scores.Models.Meci", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("DenumireMeci")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Meci");
+                });
+
+            modelBuilder.Entity("BE_App_Scores.Models.Scoruri", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
                     b.Property<DateTime>("Data")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("Scor")
                         .HasColumnType("int");
 
-                    b.HasKey("IdActivitate", "IdEchipa");
+                    b.HasKey("Id");
 
-                    b.HasIndex("IdEchipa");
-
-                    b.ToTable("GestionareMeciuri");
+                    b.ToTable("Scoruri");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -349,9 +389,25 @@ namespace BE_App_Scores.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("BE_App_Scores.Models.Meci", "Meci")
+                        .WithMany("GestionareMeciuri")
+                        .HasForeignKey("IdMeci")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BE_App_Scores.Models.Scoruri", "Scoruri")
+                        .WithMany("GestionareMeciuri")
+                        .HasForeignKey("IdScor")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Activitate");
 
                     b.Navigation("Echipa");
+
+                    b.Navigation("Meci");
+
+                    b.Navigation("Scoruri");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -414,6 +470,16 @@ namespace BE_App_Scores.Migrations
                 {
                     b.Navigation("CreareEchipe");
 
+                    b.Navigation("GestionareMeciuri");
+                });
+
+            modelBuilder.Entity("BE_App_Scores.Models.Meci", b =>
+                {
+                    b.Navigation("GestionareMeciuri");
+                });
+
+            modelBuilder.Entity("BE_App_Scores.Models.Scoruri", b =>
+                {
                     b.Navigation("GestionareMeciuri");
                 });
 #pragma warning restore 612, 618
