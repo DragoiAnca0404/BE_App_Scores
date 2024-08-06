@@ -3,14 +3,30 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace BE_App_Scores.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialMigration : Migration
+    public partial class InitMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "Activitati",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Titlu = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Descriere = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Activitati", x => x.Id);
+                });
+
             migrationBuilder.CreateTable(
                 name: "AspNetRoles",
                 columns: table => new
@@ -48,6 +64,46 @@ namespace BE_App_Scores.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Echipe",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    DenumireEchipa = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Echipe", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Meci",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    DenumireMeci = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Meci", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Scoruri",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Scor = table.Column<int>(type: "int", nullable: false),
+                    Data = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Scoruri", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -156,6 +212,78 @@ namespace BE_App_Scores.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "CreareEchipe",
+                columns: table => new
+                {
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    EchipeId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CreareEchipe", x => new { x.UserId, x.EchipeId });
+                    table.ForeignKey(
+                        name: "FK_CreareEchipe_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_CreareEchipe_Echipe_EchipeId",
+                        column: x => x.EchipeId,
+                        principalTable: "Echipe",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "GestionareMeciuri",
+                columns: table => new
+                {
+                    IdActivitate = table.Column<int>(type: "int", nullable: false),
+                    IdEchipa = table.Column<int>(type: "int", nullable: false),
+                    IdMeci = table.Column<int>(type: "int", nullable: false),
+                    IdScor = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_GestionareMeciuri", x => new { x.IdActivitate, x.IdEchipa, x.IdMeci, x.IdScor });
+                    table.ForeignKey(
+                        name: "FK_GestionareMeciuri_Activitati_IdActivitate",
+                        column: x => x.IdActivitate,
+                        principalTable: "Activitati",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_GestionareMeciuri_Echipe_IdEchipa",
+                        column: x => x.IdEchipa,
+                        principalTable: "Echipe",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_GestionareMeciuri_Meci_IdMeci",
+                        column: x => x.IdMeci,
+                        principalTable: "Meci",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_GestionareMeciuri_Scoruri_IdScor",
+                        column: x => x.IdScor,
+                        principalTable: "Scoruri",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.InsertData(
+                table: "AspNetRoles",
+                columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
+                values: new object[,]
+                {
+                    { "1", "1", "Admin", "ADMIN" },
+                    { "2", "2", "User", "USER" },
+                    { "3", "3", "HR", "HR" }
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
                 table: "AspNetRoleClaims",
@@ -194,6 +322,26 @@ namespace BE_App_Scores.Migrations
                 column: "NormalizedUserName",
                 unique: true,
                 filter: "[NormalizedUserName] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CreareEchipe_EchipeId",
+                table: "CreareEchipe",
+                column: "EchipeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_GestionareMeciuri_IdEchipa",
+                table: "GestionareMeciuri",
+                column: "IdEchipa");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_GestionareMeciuri_IdMeci",
+                table: "GestionareMeciuri",
+                column: "IdMeci");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_GestionareMeciuri_IdScor",
+                table: "GestionareMeciuri",
+                column: "IdScor");
         }
 
         /// <inheritdoc />
@@ -215,10 +363,28 @@ namespace BE_App_Scores.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "CreareEchipe");
+
+            migrationBuilder.DropTable(
+                name: "GestionareMeciuri");
+
+            migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
+
+            migrationBuilder.DropTable(
+                name: "Activitati");
+
+            migrationBuilder.DropTable(
+                name: "Echipe");
+
+            migrationBuilder.DropTable(
+                name: "Meci");
+
+            migrationBuilder.DropTable(
+                name: "Scoruri");
         }
     }
 }

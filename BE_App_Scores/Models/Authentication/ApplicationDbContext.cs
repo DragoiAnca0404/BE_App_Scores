@@ -13,6 +13,11 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
     public DbSet<Activitate> Activitati { get; set; }
     public DbSet<GestionareMeci> GestionareMeciuri { get; set; }
 
+    public DbSet<Meci> Meci { get; set; }
+
+    public DbSet<Scoruri> Scoruri { get; set; }
+
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -51,7 +56,7 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
 
         // Configurare GestionareMeci
         builder.Entity<GestionareMeci>()
-                .HasKey(gm => new { gm.IdActivitate, gm.IdEchipa });
+                .HasKey(gm => new { gm.IdActivitate, gm.IdEchipa, gm.IdMeci, gm.IdScor });
 
         builder.Entity<GestionareMeci>()
             .HasOne(gm => gm.Activitate)
@@ -63,6 +68,20 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
             .HasOne(gm => gm.Echipa)
             .WithMany(e => e.GestionareMeciuri)
             .HasForeignKey(gm => gm.IdEchipa)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Configurare Meci
+        builder.Entity<Meci>()
+            .HasMany(e => e.GestionareMeciuri)
+            .WithOne(ce => ce.Meci)
+            .HasForeignKey(ce => ce.IdMeci)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Configurare Echipe
+        builder.Entity<Scoruri>()
+            .HasMany(e => e.GestionareMeciuri)
+            .WithOne(ce => ce.Scoruri)
+            .HasForeignKey(ce => ce.IdScor)
             .OnDelete(DeleteBehavior.Cascade);
     }
 
