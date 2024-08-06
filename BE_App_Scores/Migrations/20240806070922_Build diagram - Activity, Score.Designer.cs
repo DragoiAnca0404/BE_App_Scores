@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BE_App_Scores.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240806070922_Build diagram - Activity, Score")]
+    partial class BuilddiagramActivityScore
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -76,19 +79,27 @@ namespace BE_App_Scores.Migrations
 
             modelBuilder.Entity("BE_App_Scores.Models.GestionareMeci", b =>
                 {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("Data")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("IdActivitate")
                         .HasColumnType("int");
 
                     b.Property<int>("IdEchipa")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("Data")
-                        .HasColumnType("datetime2");
-
                     b.Property<int>("Scor")
                         .HasColumnType("int");
 
-                    b.HasKey("IdActivitate", "IdEchipa");
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdActivitate");
 
                     b.HasIndex("IdEchipa");
 
