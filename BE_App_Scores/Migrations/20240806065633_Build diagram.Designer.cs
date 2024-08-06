@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BE_App_Scores.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240806065633_Build diagram")]
+    partial class Builddiagram
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -20,27 +23,6 @@ namespace BE_App_Scores.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("BE_App_Scores.Models.Activitate", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Descriere")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Titlu")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Activitati");
-                });
 
             modelBuilder.Entity("BE_App_Scores.Models.CreareEchipe", b =>
                 {
@@ -72,27 +54,6 @@ namespace BE_App_Scores.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Echipe");
-                });
-
-            modelBuilder.Entity("BE_App_Scores.Models.GestionareMeci", b =>
-                {
-                    b.Property<int>("IdActivitate")
-                        .HasColumnType("int");
-
-                    b.Property<int>("IdEchipa")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("Data")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("Scor")
-                        .HasColumnType("int");
-
-                    b.HasKey("IdActivitate", "IdEchipa");
-
-                    b.HasIndex("IdEchipa");
-
-                    b.ToTable("GestionareMeciuri");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -335,25 +296,6 @@ namespace BE_App_Scores.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("BE_App_Scores.Models.GestionareMeci", b =>
-                {
-                    b.HasOne("BE_App_Scores.Models.Activitate", "Activitate")
-                        .WithMany("GestionareMeciuri")
-                        .HasForeignKey("IdActivitate")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("BE_App_Scores.Models.Echipe", "Echipa")
-                        .WithMany("GestionareMeciuri")
-                        .HasForeignKey("IdEchipa")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Activitate");
-
-                    b.Navigation("Echipa");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -405,16 +347,9 @@ namespace BE_App_Scores.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("BE_App_Scores.Models.Activitate", b =>
-                {
-                    b.Navigation("GestionareMeciuri");
-                });
-
             modelBuilder.Entity("BE_App_Scores.Models.Echipe", b =>
                 {
                     b.Navigation("CreareEchipe");
-
-                    b.Navigation("GestionareMeciuri");
                 });
 #pragma warning restore 612, 618
         }
