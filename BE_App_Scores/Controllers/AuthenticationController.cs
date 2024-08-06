@@ -147,6 +147,11 @@ namespace BE_App_Scores.Controllers
                 return Unauthorized(new Response { Status = "Error", Message = "Invalid username or password." });
             }
 
+            if (!user.EmailConfirmed)
+            {
+                return Unauthorized(new Response { Status = "Error", Message = "Email not confirmed. Please verify your email." });
+            }
+
             if (await _userManager.GetTwoFactorEnabledAsync(user))
             {
                 // Generate and send the 2FA code
