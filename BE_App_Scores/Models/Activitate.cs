@@ -4,7 +4,6 @@
     {
         public int Id { get; set; }
         public string Titlu { get; set; }
-        public string Descriere { get; set; }
         public ICollection<GestionareMeci> GestionareMeciuri { get; set; }
     }
 }
