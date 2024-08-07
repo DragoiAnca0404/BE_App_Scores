@@ -5,7 +5,11 @@
         public int Id { get; set; }
         public string DenumireMeci { get; set; }
 
-        public ICollection<GestionareMeci> GestionareMeciuri { get; set; }
+        //   public ICollection<GestionareMeci> GestionareMeciuri { get; set; }
+        public DateTime Data { get; set; }
+
+        public List<GestionareMeci> GestionareMeciuri { get; set; } = new List<GestionareMeci>();
+
 
     }
 }

@@ -29,10 +29,6 @@ namespace BE_App_Scores.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Descriere")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Titlu")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
