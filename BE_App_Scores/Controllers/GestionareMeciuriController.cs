@@ -54,35 +54,40 @@ namespace BE_App_Scores.Controllers
           b => b.Id,
           (a, b) => new
           { a, b })
-          .Select(y => new { denumire_meciuri = y.b.DenumireMeci }).ToList();
+          .GroupBy(m => new { m.b.DenumireMeci, m.b.Data }) // Grupați după denumirea meciului și dată
+          .Select(y => new { denumire_meciuri = y.Key.DenumireMeci, data = y.Key.Data }).ToList();
 
             return Ok(info_meci);
         }
-
-        // GET: api/GestionareMeciuri/5
+        // GET: api/GestionareMeciuri/scoruri
         [HttpGet("scoruri")]
-        public async Task<ActionResult<Activitate>> GetScoruriInFunctieDeMeci(string DenumireMeci)
+        public async Task<ActionResult<IEnumerable<object>>> GetScoruriInFunctieDeMeci(string DenumireMeci, DateTime data)
         {
-
             var id_meci = _context.Meci
-               .Where(m => m.DenumireMeci == DenumireMeci)
-               .Select(y => new { id_meci = y.Id }).ToList();
+                .Where(m => m.DenumireMeci == DenumireMeci && m.Data == data)
+                .Select(m => m.Id)
+                .FirstOrDefault();
 
-            var info_meci = _context.Meci.Where(m => m.Id.Equals(id_meci.First().id_meci))
-          .Join(_context.GestionareMeciuri,
-                u => u.Id,
-                s => s.IdMeci,
-                (u, s) => new
-                { s, u })
-          .Join(_context.Scoruri,
-          a => a.s.IdScor,
+            if (id_meci == 0)
+            {
+                return NotFound("Meciul nu a fost găsit.");
+            }
+
+            var info_meci = _context.GestionareMeciuri
+                .Where(g => g.IdMeci == id_meci)
+                .Join(_context.Scoruri,
+                      g => g.IdScor,
+                      s => s.Id,
+                      (g, s) => new { g, s })
+             .Join(_context.Echipe,
+          a => a.g.IdEchipa,
           b => b.Id,
-          (a, b) => new
-          { a, b })
-          .Select(y => new { scor = y.b.Scor }).ToList();
+          (a, b) => new { a, b })
+          .Select(y => new { Scor = y.a.g.Scoruri.Scor, denumire_echipa = y.b.DenumireEchipa}).ToList();
 
             return Ok(info_meci);
         }
+
 
 
         // GET: api/GestionareMeciuri/5

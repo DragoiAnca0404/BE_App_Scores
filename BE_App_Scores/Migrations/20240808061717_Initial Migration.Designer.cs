@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BE_App_Scores.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240807105629_Initial Migration")]
+    [Migration("20240808061717_Initial Migration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -105,6 +105,9 @@ namespace BE_App_Scores.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("Data")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("DenumireMeci")
                         .IsRequired()
