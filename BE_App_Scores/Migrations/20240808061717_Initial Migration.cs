@@ -84,7 +84,8 @@ namespace BE_App_Scores.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    DenumireMeci = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    DenumireMeci = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Data = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
