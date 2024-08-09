@@ -6,6 +6,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BE_App_Scores.Models;
+using Microsoft.AspNetCore.Authorization;
+using BE_App_Scores.Utils;
+using Microsoft.AspNetCore.Identity;
+using System.Threading.Tasks.Dataflow;
 
 namespace BE_App_Scores.Controllers
 {
@@ -32,6 +36,27 @@ namespace BE_App_Scores.Controllers
         public async Task<ActionResult<IEnumerable<Activitate>>> GetActivitati()
         {
             return await _context.Activitati.ToListAsync();
+        }
+
+        [HttpGet("VizualizareUtilizatori")]
+        public ActionResult<IEnumerable<UserDto>> GetUtilizatori()
+        {
+            var users = _context.Users
+                .Where(user => user.EmailConfirmed) // Filtrare utilizatori cu email confirmat
+                .Select(user => new UserDto
+                {
+                    UserName = user.UserName,
+                    EmailConfirmed = user.EmailConfirmed
+                })
+                .ToList();
+
+            return Ok(users);
+        }
+
+        [HttpGet("VizualizareEchipe")]
+        public async Task<ActionResult<IEnumerable<Echipe>>> GetEchipe()
+        {
+            return await _context.Echipe.ToListAsync();
         }
 
         // GET: api/GestionareMeciuri/5
@@ -170,14 +195,152 @@ namespace BE_App_Scores.Controllers
 
         // POST: api/GestionareMeciuri
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<Meci>> PostMeci(Meci meci)
-        {
-            _context.Meci.Add(meci);
-            await _context.SaveChangesAsync();
+        /*  [HttpPost("add/")]
+          public IActionResult PostMeci(AddScore item)
+          {
+              string denumire_activitate;
+              string denumire_meci;
+              DateTime Data;
 
-            return CreatedAtAction("GetMeci", new { id = meci.Id }, meci);
+              denumire_activitate = item.denumire_activitate;
+              denumire_meci = item.denumire_meci;
+              Data = item.Data_Meci;
+
+
+              var id_subject = _context.Activitati.Where(s => s.Titlu.Equals(denumire_activitate)).Select(s => new { IdActivitate = s.Id }).FirstOrDefault();
+
+              return null;
+
+          }*/
+
+        //1.2 aici preiei doar denumire meci 
+
+        [HttpPost("add")]
+        public IActionResult PostMeci([FromBody] AddScore item)
+        {
+            // Verifică dacă activitatea există
+            var activitate = _context.Activitati.FirstOrDefault(a => a.Titlu == item.DenumireActivitate);
+            if (activitate == null)
+            {
+                return BadRequest("Activitatea specificată nu există.");
+            }
+
+            // Creează un nou meci
+            var meci = new Meci
+            {
+                DenumireMeci = item.DenumireMeci,
+                Data = item.DataMeci
+            };
+            _context.Meci.Add(meci);
+            _context.SaveChanges(); // Salvează pentru a obține ID-ul meciului
+
+            foreach (var teamScore in item.Echipe)
+            {
+                // Creează echipa dacă nu există
+                var echipa = _context.Echipe.FirstOrDefault(e => e.DenumireEchipa == teamScore.DenumireEchipa);
+                if (echipa == null)
+                {
+                    echipa = new Echipe { DenumireEchipa = teamScore.DenumireEchipa };
+                    _context.Echipe.Add(echipa);
+                    _context.SaveChanges(); // Salvează pentru a obține ID-ul echipei
+                }
+
+                // Creează scorul
+                var scor = new Scoruri
+                {
+                    Scor = teamScore.Scor,
+                    Data = item.DataMeci
+                };
+                _context.Scoruri.Add(scor);
+                _context.SaveChanges(); // Salvează pentru a obține ID-ul scorului
+
+                // Gestionează meciul
+                var gestionareMeci = new GestionareMeci
+                {
+                    IdActivitate = activitate.Id,
+                    IdEchipa = echipa.Id,
+                    IdMeci = meci.Id,
+                    IdScor = scor.Id
+                };
+                _context.GestionareMeciuri.Add(gestionareMeci);
+            }
+
+            _context.SaveChanges();
+
+            return Ok(new { Message = "Meciul și scorurile au fost adăugate cu succes." });
         }
+
+
+        //1.1 Creezi meciul si alegi membri din echipa
+        [HttpPost("add-echipa")]
+        public IActionResult CreareEchipe([FromBody] AddEchipe item)
+        {
+            var echipaExistenta = _context.Echipe
+                               .Any(e => e.DenumireEchipa == item.DenumireEchipa);
+            if (echipaExistenta)
+            {
+                return BadRequest("Echipa cu acest nume există deja.");
+            }
+            // Creează un nou meci
+            var echipa = new Echipe
+            {
+                DenumireEchipa = item.DenumireEchipa,
+            };
+            _context.Echipe.Add(echipa);
+            _context.SaveChanges(); // Salvează pentru a obține ID-ul meciului
+            return Ok(new { Message = "Meciul și scorurile au fost adăugate cu succes." });
+        }
+
+
+        [HttpPost]
+        [Route("Create")]
+        public IActionResult Create(JoinEchipa model)
+        {
+            if (model == null || model.Usernames == null || string.IsNullOrEmpty(model.DenumireEchipa))
+            {
+                return BadRequest("Datele primite nu sunt valide.");
+            }
+
+            // Căutăm echipa după denumire
+            var echipa = _context.Echipe.SingleOrDefault(e => e.DenumireEchipa == model.DenumireEchipa);
+            if (echipa == null)
+            {
+                return NotFound();
+            }
+
+            // Iterăm prin lista de username-uri și alocăm fiecare utilizator echipei
+            foreach (var username in model.Usernames)
+            {
+                var user = _context.Users.SingleOrDefault(u => u.UserName == username);
+                if (user == null)
+                {
+                    return BadRequest($"Utilizatorul {username} nu a fost găsit.");
+                }
+
+                // Verificăm dacă utilizatorul este deja alocat echipei
+                var existingAllocation = _context.CreareEchipe
+                    .SingleOrDefault(ce => ce.UserId == user.Id && ce.EchipeId == echipa.Id);
+
+                if (existingAllocation != null)
+                {
+                    continue; // Dacă utilizatorul este deja alocat, trecem la următorul
+                }
+
+                // Creăm relația între utilizator și echipă
+                var creareEchipe = new CreareEchipe
+                {
+                    UserId = user.Id,
+                    EchipeId = echipa.Id
+                };
+
+                _context.CreareEchipe.Add(creareEchipe);
+            }
+
+            _context.SaveChanges();
+
+            return Ok("Utilizatorii au fost alocați echipei cu succes.");
+        }
+
 
         // DELETE: api/GestionareMeciuri/5
         [HttpDelete("{id}")]
