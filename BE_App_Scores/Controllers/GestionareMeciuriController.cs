@@ -302,11 +302,25 @@ namespace BE_App_Scores.Controllers
             }
 
             // Căutăm echipa după denumire
-            var echipa = _context.Echipe.SingleOrDefault(e => e.DenumireEchipa == model.DenumireEchipa);
-            if (echipa == null)
+            /*  var echipa = _context.Echipe.SingleOrDefault(e => e.DenumireEchipa == model.DenumireEchipa);
+              if (echipa == null)
+              {
+                  return NotFound();
+              }*/
+
+            var echipaExistenta = _context.Echipe
+                              .Any(e => e.DenumireEchipa == model.DenumireEchipa);
+            if (echipaExistenta)
             {
-                return NotFound();
+                return BadRequest("Echipa cu acest nume există deja.");
             }
+            // Creează un nou meci
+            var echipa = new Echipe
+            {
+                DenumireEchipa = model.DenumireEchipa,
+            };
+            _context.Echipe.Add(echipa);
+            _context.SaveChanges();
 
             // Iterăm prin lista de username-uri și alocăm fiecare utilizator echipei
             foreach (var username in model.Usernames)
