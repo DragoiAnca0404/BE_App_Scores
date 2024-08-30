@@ -120,31 +120,49 @@ public class Startup
         // Add CORS policy
         services.AddCors(options =>
         {
-            options.AddPolicy("AllowSpecificOrigin", builder =>
+            options.AddPolicy("AllowAll", builder =>
             {
                 builder
-                .WithOrigins("http://localhost:8100") // Specifică explicit originea aplicației tale Ionic
+                .WithOrigins("http://localhost:8100", "capacitor://localhost", "https://localhost", "http://192.168.1.134", "http://192.168.1.135", "http://localhost") // Specifică explicit originea aplicației tale Ionic
                 .AllowAnyMethod()
                 .AllowAnyHeader()
                 .AllowCredentials(); // Permite cookie-uri
             });
         });
+
+        services.AddControllers();
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
+
+
         if (env.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();
             app.UseSwagger();
             app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Auth API v1"));
         }
+        else
+        {
+            app.UseExceptionHandler("/Home/Error");
+        }
+
+
+
+        app.UseDeveloperExceptionPage();
+        app.UseSwagger();
+        app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Auth API v1"));
+
+        app.UseExceptionHandler("/Home/Error");
+        app.UseHsts();
+
 
         app.UseHttpsRedirection();
         app.UseStaticFiles();
 
         app.UseRouting();
-        app.UseCors("AllowSpecificOrigin");
+        app.UseCors("AllowAll");
 
         app.UseAuthentication();
         app.UseAuthorization();
