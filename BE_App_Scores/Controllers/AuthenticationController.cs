@@ -138,7 +138,18 @@ namespace BE_App_Scores.Controllers
         [Route("login")]
         public async Task<IActionResult> Login([FromBody] LoginModel model)
         {
-            var user = await _userManager.FindByNameAsync(model.Username);
+            IdentityUser user = null;
+
+            // Verifică dacă input-ul este un e-mail
+            if (IsValidEmail(model.UsernameOrEmail))
+            {
+                user = await _userManager.FindByEmailAsync(model.UsernameOrEmail);
+            }
+            else
+            {
+                user = await _userManager.FindByNameAsync(model.UsernameOrEmail);
+            }
+
             if (user == null || !await _userManager.CheckPasswordAsync(user, model.Password))
             {
                 return Unauthorized(new Response { Status = "Error", Message = "Invalid username or password." });
@@ -183,6 +194,19 @@ namespace BE_App_Scores.Controllers
             });
         }
 
+
+        private bool IsValidEmail(string email)
+        {
+            try
+            {
+                var addr = new System.Net.Mail.MailAddress(email);
+                return addr.Address == email;
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
         [HttpPost]
         [Route("login-2FA")]

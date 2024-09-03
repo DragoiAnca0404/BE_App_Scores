@@ -107,6 +107,59 @@ namespace BE_App_Scores.Controllers
         }
 
 
+        // GET: api/GestionareMeciuri/scoruri
+        [HttpGet("Maxscoruri")]
+        public async Task<ActionResult<string>> GetMaxScor(string DenumireMeci, DateTime data)
+        {
+            var id_meci = _context.Meci
+                .Where(m => m.DenumireMeci == DenumireMeci && m.Data == data)
+                .Select(m => m.Id)
+                .FirstOrDefault();
+
+            if (id_meci == 0)
+            {
+                return NotFound("Meciul nu a fost găsit.");
+            }
+
+            var info_meci = _context.GestionareMeciuri
+                .Where(g => g.IdMeci == id_meci)
+                .Join(_context.Scoruri,
+                      g => g.IdScor,
+                      s => s.Id,
+                      (g, s) => new { g, s })
+                .Join(_context.Echipe,
+                      a => a.g.IdEchipa,
+                      b => b.Id,
+                      (a, b) => new { Scor = a.s.Scor, DenumireEchipa = b.DenumireEchipa })
+                .ToList();
+
+            if (info_meci.Count < 2)
+            {
+                return BadRequest("Nu sunt suficiente echipe pentru a determina un câștigător.");
+            }
+
+            // Găsește scorul maxim
+            var scorMaxim = info_meci.Max(e => e.Scor);
+
+            // Găsește echipele cu scorul maxim
+            var echipeCuScorMaxim = info_meci.Where(e => e.Scor == scorMaxim).Select(e => e.DenumireEchipa).ToList();
+
+            string rezultat;
+
+            if (echipeCuScorMaxim.Count == 1)
+            {
+                rezultat = $"Echipa {echipeCuScorMaxim[0]} a câștigat.";
+            }
+            else
+            {
+                rezultat = $"Există egalitate între echipele: {string.Join(", ", echipeCuScorMaxim)}.";
+            }
+
+            return Ok(rezultat);
+        }
+
+
+
 
         // GET: api/GestionareMeciuri/5
         [HttpGet("{DenumireMeci}")]
