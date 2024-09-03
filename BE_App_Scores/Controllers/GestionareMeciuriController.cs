@@ -1,15 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BE_App_Scores.Models;
-using Microsoft.AspNetCore.Authorization;
 using BE_App_Scores.Utils;
-using Microsoft.AspNetCore.Identity;
-using System.Threading.Tasks.Dataflow;
+
 
 namespace BE_App_Scores.Controllers
 {

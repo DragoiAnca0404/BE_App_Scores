@@ -11,8 +11,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Identity.Data;
 using BE_App_Scores.Utils;
+using System.Web;
 
 namespace BE_App_Scores.Controllers
 {
@@ -100,10 +100,7 @@ namespace BE_App_Scores.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError,
                 new Response { Status = "Error", Message = "This Role doesn't exist" });
             }
-
-
             //Assign a role
-
         }
 
         [HttpGet]
@@ -187,8 +184,6 @@ namespace BE_App_Scores.Controllers
         }
 
 
-
-
         [HttpPost]
         [Route("login-2FA")]
         public async Task<IActionResult> LoginWithOTP([FromBody] TwoFactorLoginModel model)
@@ -236,8 +231,13 @@ namespace BE_App_Scores.Controllers
             if (user != null)
             {
                 var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-                var forgotPasswordLink = Url.Action( nameof(ResetPassword), "Authentication", new { token, email = user.Email }, Request.Scheme);
-                var message = new Message(new string[] { user.Email! }, "Forgot Password Link!", forgotPasswordLink! );
+                var resetPasswordUrl = $"http://localhost:8100/reset-password?token={Uri.EscapeDataString(token)}&email={user.Email}";
+
+
+                //  var forgotPasswordLink = Url.Action( nameof(ResetPassword), "Authentication", new { token, email = user.Email }, Request.Scheme);
+                // var message = new Message(new string[] { user.Email! }, "Forgot Password Link!", forgotPasswordLink! );
+                var message = new Message(new string[] { user.Email! }, "Forgot Password Link!", resetPasswordUrl);
+
                 _emailService.SendEmail(message);
                 return StatusCode(StatusCodes.Status200OK,
                    new Response { Status = "Success", Message = $"Password Changed request is sent on Email {user.Email}. Please check your email." });
@@ -260,6 +260,7 @@ namespace BE_App_Scores.Controllers
         [Route("reset-password")]
         public async Task<IActionResult> ResetPassword(ResetPassword resetPassword)
         {
+
             var user = await _userManager.FindByEmailAsync(resetPassword.Email);
 
             if (user != null)

@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BE_App_Scores.Controllers
@@ -11,7 +10,6 @@ namespace BE_App_Scores.Controllers
     {
 
         [HttpGet("employees")]
-
         public IEnumerable<string> Get() {
         return new List<string> {"Ahmed", "Ali", "Ahsan" };
         }
