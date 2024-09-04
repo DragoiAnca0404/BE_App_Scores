@@ -1,0 +1,13 @@
+C:\Users\Metasoft3D\Documents\GitHub\BE_App_Scores\BE_App_Scores.Service\bin\Release\net8.0\BE_App_Scores.Service.deps.json
+C:\Users\Metasoft3D\Documents\GitHub\BE_App_Scores\BE_App_Scores.Service\bin\Release\net8.0\BE_App_Scores.Service.dll
+C:\Users\Metasoft3D\Documents\GitHub\BE_App_Scores\BE_App_Scores.Service\bin\Release\net8.0\BE_App_Scores.Service.pdb
+C:\Users\Metasoft3D\Documents\GitHub\BE_App_Scores\BE_App_Scores.Service\obj\Release\net8.0\BE_App_Scores.Service.csproj.AssemblyReference.cache
+C:\Users\Metasoft3D\Documents\GitHub\BE_App_Scores\BE_App_Scores.Service\obj\Release\net8.0\BE_App_Scores.Service.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Metasoft3D\Documents\GitHub\BE_App_Scores\BE_App_Scores.Service\obj\Release\net8.0\BE_App_Scores.Service.AssemblyInfoInputs.cache
+C:\Users\Metasoft3D\Documents\GitHub\BE_App_Scores\BE_App_Scores.Service\obj\Release\net8.0\BE_App_Scores.Service.AssemblyInfo.cs
+C:\Users\Metasoft3D\Documents\GitHub\BE_App_Scores\BE_App_Scores.Service\obj\Release\net8.0\BE_App_Scores.Service.csproj.CoreCompileInputs.cache
+C:\Users\Metasoft3D\Documents\GitHub\BE_App_Scores\BE_App_Scores.Service\obj\Release\net8.0\BE_App_Scores.Service.sourcelink.json
+C:\Users\Metasoft3D\Documents\GitHub\BE_App_Scores\BE_App_Scores.Service\obj\Release\net8.0\BE_App_Scores.Service.dll
+C:\Users\Metasoft3D\Documents\GitHub\BE_App_Scores\BE_App_Scores.Service\obj\Release\net8.0\refint\BE_App_Scores.Service.dll
+C:\Users\Metasoft3D\Documents\GitHub\BE_App_Scores\BE_App_Scores.Service\obj\Release\net8.0\BE_App_Scores.Service.pdb
+C:\Users\Metasoft3D\Documents\GitHub\BE_App_Scores\BE_App_Scores.Service\obj\Release\net8.0\ref\BE_App_Scores.Service.dll
