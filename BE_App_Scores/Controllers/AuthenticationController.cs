@@ -50,8 +50,7 @@ namespace BE_App_Scores.Controllers
         [Route("register")]
         public async Task<IActionResult> Register([FromBody] RegisterUser registerUser, string role)
         {
-
-            //Check user exist
+            // Verifică dacă utilizatorul există deja
             var userExist = await _userManager.FindByEmailAsync(registerUser.Email);
 
             if (userExist != null)
@@ -60,8 +59,7 @@ namespace BE_App_Scores.Controllers
                     new Response { Status = "Error", Message = "User already Exists!" });
             }
 
-            //Add the user in the database
-
+            // Adaugă utilizatorul în baza de date
             IdentityUser user = new()
             {
                 Email = registerUser.Email,
@@ -69,9 +67,9 @@ namespace BE_App_Scores.Controllers
                 UserName = registerUser.Username,
                 TwoFactorEnabled = true
             };
+
             if (await _roleManager.RoleExistsAsync(role))
             {
-
                 var result = await _userManager.CreateAsync(user, registerUser.Password);
 
                 if (!result.Succeeded)
@@ -80,28 +78,39 @@ namespace BE_App_Scores.Controllers
                     new Response { Status = "Error", Message = "User Failed to Create" });
                 }
 
-                //Add role to the user ...
+                // Atribuie rolul utilizatorului
                 await _userManager.AddToRoleAsync(user, role);
 
-
-                //Add Token to Verify the email...
+                // Generează token pentru confirmarea emailului
                 var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                 var confirmationLink = Url.Action(nameof(ConfirmEmail), "Authentication", new { token, email = user.Email }, Request.Scheme);
-                var message = new Message(new string[] { user.Email!}, "Confirmation email link", confirmationLink!);
+
+                var emailBody = $@"
+    <h1>Bine ai venit, {user.UserName}!</h1>
+    <p>Te rugăm să confirmi adresa ta de email făcând click pe linkul de mai jos:</p>
+    <p><a href='{confirmationLink}'>Confirmă Emailul</a></p>
+    <br/>
+    <p>Suntem încântați să te avem cu noi!</p>
+    <p>Între timp, iată un GIF pentru tine:</p>
+    <img src='https://i.imgur.com/Eftpra2.gif' alt='GIF de bun venit' />
+    <br/>
+    <p>Mulțumim și bine ai venit la platforma noastră!</p>
+";
+                var message = new Message(new string[] { user.Email }, "Bine ai venit la platforma noastră!", emailBody);
                 _emailService.SendEmail(message);
 
 
 
                 return StatusCode(StatusCodes.Status200OK,
-                         new Response { Status = "Success", Message = $"User Created $ Email Sent to {user.Email} Successfully!" });
-
+                         new Response { Status = "Success", Message = $"User Created & Email Sent to {user.Email} Successfully!" });
             }
-            else {
+            else
+            {
                 return StatusCode(StatusCodes.Status500InternalServerError,
                 new Response { Status = "Error", Message = "This Role doesn't exist" });
             }
-            //Assign a role
         }
+
 
         [HttpGet]
         public IActionResult TestEmail()
@@ -163,8 +172,24 @@ namespace BE_App_Scores.Controllers
             if (await _userManager.GetTwoFactorEnabledAsync(user))
             {
                 // Generate and send the 2FA code
+                //var message = new Message(new string[] { user.Email }, "Bine ai venit la platforma noastră!", emailBody);
+
                 var token = await _userManager.GenerateTwoFactorTokenAsync(user, "Email");
-                var message = new Message(new string[] { user.Email }, "OTP Confirmation", token);
+
+
+                var emailBody = $@"
+    <h1>Salutari, {user.UserName}!</h1>
+    <p>Mai jos vei regasi codul tau:</p>
+    <p>{token}</p>
+    <br/>
+    <p>Suntem încântați să te avem cu noi!</p>
+    <p>Între timp, iată un GIF pentru tine:</p>
+    <img src='https://i.imgur.com/Eftpra2.gif' alt='GIF de bun venit' />
+    <br/>
+    <p>Mulțumim și bine ai venit la platforma noastră!</p>
+";
+
+                var message = new Message(new string[] { user.Email }, "Mesaj confirmare - Aplicatie Scoruri", emailBody);
                 _emailService.SendEmail(message);
 
                 return Ok(new Response
@@ -193,7 +218,6 @@ namespace BE_App_Scores.Controllers
                 expiration = jwtToken.ValidTo
             });
         }
-
 
         private bool IsValidEmail(string email)
         {
@@ -260,7 +284,20 @@ namespace BE_App_Scores.Controllers
 
                 //  var forgotPasswordLink = Url.Action( nameof(ResetPassword), "Authentication", new { token, email = user.Email }, Request.Scheme);
                 // var message = new Message(new string[] { user.Email! }, "Forgot Password Link!", forgotPasswordLink! );
-                var message = new Message(new string[] { user.Email! }, "Forgot Password Link!", resetPasswordUrl);
+
+                var emailBody = $@"
+    <h1>Salutari, {user.UserName}!</h1>
+    <p>Te rugăm să confirmi adresa ta de email făcând click pe linkul de mai jos:</p>
+    <p><a href='{resetPasswordUrl}'>Link reseteaza parola</a></p>
+    <br/>
+    <p>Suntem încântați să te avem cu noi!</p>
+    <p>Între timp, iată un GIF pentru tine:</p>
+    <img src='https://i.imgur.com/Eftpra2.gif' alt='GIF de bun venit' />
+    <br/>
+    <p>Mulțumim și bine ai venit la platforma noastră!</p>
+";
+
+                var message = new Message(new string[] { user.Email! }, "Buna, ti-ai uitat parola.", emailBody);
 
                 _emailService.SendEmail(message);
                 return StatusCode(StatusCodes.Status200OK,
