@@ -111,7 +111,6 @@ namespace BE_App_Scores.Controllers
             }
         }
 
-
         [HttpGet]
         public IActionResult TestEmail()
         {
