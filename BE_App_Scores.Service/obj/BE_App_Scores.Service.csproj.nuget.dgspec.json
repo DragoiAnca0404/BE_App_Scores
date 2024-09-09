@@ -1,20 +1,24 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Admin\\Documents\\GitHub\\BE_App_Scores\\BE_App_Scores.Service\\BE_App_Scores.Service.csproj": {}
+    "C:\\Users\\Metasoft3D\\Documents\\GitHub\\BE_App_Scores\\BE_App_Scores.Service\\BE_App_Scores.Service.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Admin\\Documents\\GitHub\\BE_App_Scores\\BE_App_Scores.Service\\BE_App_Scores.Service.csproj": {
+    "C:\\Users\\Metasoft3D\\Documents\\GitHub\\BE_App_Scores\\BE_App_Scores.Service\\BE_App_Scores.Service.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Admin\\Documents\\GitHub\\BE_App_Scores\\BE_App_Scores.Service\\BE_App_Scores.Service.csproj",
+        "projectUniqueName": "C:\\Users\\Metasoft3D\\Documents\\GitHub\\BE_App_Scores\\BE_App_Scores.Service\\BE_App_Scores.Service.csproj",
         "projectName": "BE_App_Scores.Service",
-        "projectPath": "C:\\Users\\Admin\\Documents\\GitHub\\BE_App_Scores\\BE_App_Scores.Service\\BE_App_Scores.Service.csproj",
-        "packagesPath": "C:\\Users\\Admin\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Admin\\Documents\\GitHub\\BE_App_Scores\\BE_App_Scores.Service\\obj\\",
+        "projectPath": "C:\\Users\\Metasoft3D\\Documents\\GitHub\\BE_App_Scores\\BE_App_Scores.Service\\BE_App_Scores.Service.csproj",
+        "packagesPath": "C:\\Users\\Metasoft3D\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Metasoft3D\\Documents\\GitHub\\BE_App_Scores\\BE_App_Scores.Service\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
         "configFilePaths": [
-          "C:\\Users\\Admin\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\Metasoft3D\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
