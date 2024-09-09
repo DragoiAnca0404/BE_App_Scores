@@ -1,6 +1,7 @@
 ﻿
 using BE_App_Scores.Service.Models;
 using MailKit.Net.Smtp;
+using MailKit.Security;
 using MimeKit;
 
 namespace BE_App_Scores.Service.Services
@@ -16,16 +17,32 @@ namespace BE_App_Scores.Service.Services
             Send(emailMessage);
         }
 
+
+
+        /* private MimeMessage CreateEmailMessage(Message message)
+         {
+             var emailMessage = new MimeMessage();
+             emailMessage.From.Add(new MailboxAddress("email", _emailConfig.From));
+             emailMessage.To.AddRange(message.To);
+             emailMessage.Subject = message.Subject;
+             emailMessage.Body = new TextPart(MimeKit.Text.TextFormat.Text) { Text = message.Content };
+             return emailMessage;
+
+         }*/
+
+
         private MimeMessage CreateEmailMessage(Message message)
         {
             var emailMessage = new MimeMessage();
             emailMessage.From.Add(new MailboxAddress("email", _emailConfig.From));
             emailMessage.To.AddRange(message.To);
             emailMessage.Subject = message.Subject;
-            emailMessage.Body = new TextPart(MimeKit.Text.TextFormat.Text) { Text = message.Content };
-            return emailMessage;
 
+            // Aici schimbăm formatul de la Text la HTML
+            emailMessage.Body = new TextPart(MimeKit.Text.TextFormat.Html) { Text = message.Content };
+            return emailMessage;
         }
+
 
 
         private void Send(MimeMessage mailMessage)

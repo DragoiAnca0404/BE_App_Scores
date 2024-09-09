@@ -106,7 +106,6 @@ namespace BE_App_Scores.Controllers
             return Ok(info_meci);
         }
 
-
         // GET: api/GestionareMeciuri/scoruri
         [HttpGet("Maxscoruri")]
         public async Task<ActionResult<string>> GetMaxScor(string DenumireMeci, DateTime data)
@@ -157,9 +156,6 @@ namespace BE_App_Scores.Controllers
 
             return Ok(rezultat);
         }
-
-
-
 
         // GET: api/GestionareMeciuri/5
         [HttpGet("{DenumireMeci}")]
