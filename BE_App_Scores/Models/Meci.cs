@@ -10,6 +10,7 @@
 
         public List<GestionareMeci> GestionareMeciuri { get; set; } = new List<GestionareMeci>();
 
+        public string TipMeci { get; set; }  // Adaugă câmpul nou
 
     }
 }
