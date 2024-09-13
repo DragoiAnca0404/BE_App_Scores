@@ -203,6 +203,7 @@ namespace BE_App_Scores.Controllers
             var authClaims = new List<Claim>
     {
         new Claim(ClaimTypes.Name, user.UserName),
+       new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),  // ID-ul utilizatorului
         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
     };
             foreach (var userRole in userRoles)
@@ -252,6 +253,7 @@ namespace BE_App_Scores.Controllers
             var authClaims = new List<Claim>
     {
         new Claim(ClaimTypes.Name, user.UserName),
+        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
     };
             foreach (var userRole in userRoles)

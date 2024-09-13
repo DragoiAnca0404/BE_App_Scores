@@ -2,8 +2,12 @@
 using Microsoft.EntityFrameworkCore;
 using BE_App_Scores.Models;
 using BE_App_Scores.Utils;
-
-
+using Microsoft.AspNetCore.Identity;
+using BE_App_Scores.Service.Models;
+using BE_App_Scores.Service.Services;
+using BE_App_Scores.Models.PrivateCodeAccess;
+using System.Security.Claims;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 namespace BE_App_Scores.Controllers
 {
     [Route("api/[controller]")]
@@ -11,10 +15,15 @@ namespace BE_App_Scores.Controllers
     public class GestionareMeciuriController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<IdentityUser> _userManager;
+        private readonly IEmailService _emailService;
 
-        public GestionareMeciuriController(ApplicationDbContext context)
+
+        public GestionareMeciuriController(ApplicationDbContext context, UserManager<IdentityUser> userManager, IEmailService emailService)
         {
             _context = context;
+            _userManager = userManager;
+            _emailService = emailService;
         }
 
         // GET: api/GestionareMeciuri
@@ -414,9 +423,141 @@ namespace BE_App_Scores.Controllers
             return NoContent();
         }
 
+        // GET: api/GestionareMeciuri/Public
+        [HttpGet("Public")]
+        public async Task<ActionResult<IEnumerable<Meci>>> GetMeciuriPublice()
+        {
+            return await _context.Meci
+                .Where(m => m.TipMeci == "Public")
+                .ToListAsync();
+        }
+
+        [HttpGet]
+        [Route("meciuri/{id}")]
+        public async Task<IActionResult> GetMeci(int id, string DenumireMeci, DateTime data)
+        {
+            var info_meci = await GetMeciInfo(DenumireMeci, data);
+
+            if (info_meci == null)
+            {
+                return NotFound(new Response { Status = "Error", Message = "Meciul sau scorurile nu au fost găsite." });
+            }
+
+            var meci = await _context.Meci.FindAsync(id);
+            if (meci == null)
+            {
+                return NotFound(new Response { Status = "Error", Message = "Meciul nu a fost găsit." });
+            }
+
+            if (meci.TipMeci == "Public")
+            {
+                return Ok(info_meci);  
+            }
+
+            if (User.Identity.IsAuthenticated)
+            {
+                var claims = User.Claims.ToList();
+                foreach (var claim in claims)
+                {
+                    Console.WriteLine($"Claim Type: {claim.Type}, Value: {claim.Value}");
+                }
+
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var userName = User.FindFirst(ClaimTypes.Name)?.Value;
+
+                Console.WriteLine($"User ID from claims: {userId}");
+                Console.WriteLine($"User Name from claims: {userName}");
+            }
+
+            // Dacă meciul este privat, verificăm dacă utilizatorul a introdus un cod 2FA valid
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Unauthorized(new Response { Status = "Error", Message = "Autentificare necesară." });
+            }
+
+            if (!await _userManager.GetTwoFactorEnabledAsync(user))
+            {
+                return Unauthorized(new Response { Status = "Error", Message = "2FA nu este activat pentru acest utilizator." });
+            }
+
+            // Dacă 2FA este activat, trimitem codul
+            var token = await _userManager.GenerateTwoFactorTokenAsync(user, "Email");
+            var emailBody = $@"
+<h1>Salutari, {user.UserName}!</h1>
+<p>Codul tău pentru a accesa meciul este:</p>
+<p>{token}</p>
+<br/>
+<p>Îți mulțumim că folosești platforma noastră!</p>";
+            var message = new Message(new string[] { user.Email }, "Cod de acces pentru meci privat", emailBody);
+            _emailService.SendEmail(message);
+
+            return Ok(new Response { Status = "Success", Message = $"Codul de acces a fost trimis pe {user.Email}." });
+        }
+
+
+        [HttpPost]
+        [Route("meciuri/private-access")]
+        public async Task<IActionResult> AccessPrivateMeci([FromBody] TwoFactorAccessModel model)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            /*if (user == null)
+            {
+                return Unauthorized(new Response { Status = "Error", Message = "Autentificare necesară." });
+            }
+            */
+            // Verificăm codul 2FA
+            var isValid = await _userManager.VerifyTwoFactorTokenAsync(user, "Email", model.Code);
+            if (!isValid)
+            {
+                return Unauthorized(new Response { Status = "Error", Message = "Cod 2FA invalid." });
+            }
+
+            var meci = await _context.Meci.FindAsync(model.MeciId);
+            if (meci == null || meci.TipMeci != "Privat")
+            {
+                return NotFound(new Response { Status = "Error", Message = "Meciul privat nu a fost găsit." });
+            }
+
+            var info_meci = await GetMeciInfo(meci.DenumireMeci, meci.Data);
+            return Ok(info_meci);
+        }
+
+
+
         private bool MeciExists(int id)
         {
             return _context.Meci.Any(e => e.Id == id);
         }
+
+        private async Task<object> GetMeciInfo(string DenumireMeci, DateTime data)
+        {
+            var id_meci = _context.Meci
+                           .Where(m => m.DenumireMeci == DenumireMeci && m.Data == data)
+                           .Select(m => m.Id)
+                           .FirstOrDefault();
+
+            if (id_meci == 0)
+            {
+                return null;  
+            }
+
+            var info_meci = _context.GestionareMeciuri
+                .Where(g => g.IdMeci == id_meci)
+                .Join(_context.Scoruri,
+                      g => g.IdScor,
+                      s => s.Id,
+                      (g, s) => new { g, s })
+                .Join(_context.Echipe,
+                      a => a.g.IdEchipa,
+                      b => b.Id,
+                      (a, b) => new { a, b })
+                .Select(y => new { Scor = y.a.g.Scoruri.Scor, denumire_echipa = y.b.DenumireEchipa })
+                .ToList();
+
+            return info_meci.Any() ? info_meci : null;
+        }
+
+
     }
 }
