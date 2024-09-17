@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BE_App_Scores")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b696a0492b5a44b9bf9271c53523acf6139b91fc")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1421dc89198d705208982b70cb94cd71bcd43f05")]
 [assembly: System.Reflection.AssemblyProductAttribute("BE_App_Scores")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BE_App_Scores")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

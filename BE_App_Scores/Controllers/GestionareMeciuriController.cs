@@ -81,8 +81,8 @@ namespace BE_App_Scores.Controllers
           b => b.Id,
           (a, b) => new
           { a, b })
-          .GroupBy(m => new { m.b.DenumireMeci, m.b.Data }) // Grupați după denumirea meciului și dată
-          .Select(y => new { denumire_meciuri = y.Key.DenumireMeci, data = y.Key.Data }).ToList();
+          .GroupBy(m => new { m.b.DenumireMeci, m.b.Data, m.b.TipMeci }) // Grupați după denumirea meciului și dată
+          .Select(y => new { denumire_meciuri = y.Key.DenumireMeci, data = y.Key.Data, tip_meci = y.Key.TipMeci }).ToList();
 
             return Ok(info_meci);
         }
@@ -433,9 +433,14 @@ namespace BE_App_Scores.Controllers
         }
 
         [HttpGet]
-        [Route("meciuri/{id}")]
-        public async Task<IActionResult> GetMeci(int id, string DenumireMeci, DateTime data)
+        [Route("meciuri")]
+        public async Task<IActionResult> GetMeci(string DenumireMeci, DateTime data)
         {
+            var id = _context.Meci
+                .Where(m => m.DenumireMeci == DenumireMeci && m.Data == data)
+                .Select(m => m.Id)
+                .FirstOrDefault();
+
             var info_meci = await GetMeciInfo(DenumireMeci, data);
 
             if (info_meci == null)
@@ -492,7 +497,12 @@ namespace BE_App_Scores.Controllers
             var message = new Message(new string[] { user.Email }, "Cod de acces pentru meci privat", emailBody);
             _emailService.SendEmail(message);
 
-            return Ok(new Response { Status = "Success", Message = $"Codul de acces a fost trimis pe {user.Email}." });
+            var numericId = Convert.ToInt32(id);  // Exemplu de conversie, depinzând de tipul datelor tale
+
+
+            return Ok(new { Status = "Success", Message = $"Codul de acces a fost trimis pe {user.Email}.", meciId = id });
+
+            //return Ok(new Response { Status = "Success", Message = $"Codul de acces a fost trimis pe {user.Email}." });
         }
 
 
@@ -520,7 +530,9 @@ namespace BE_App_Scores.Controllers
             }
 
             var info_meci = await GetMeciInfo(meci.DenumireMeci, meci.Data);
-            return Ok(info_meci);
+          //  return Ok(new Response { Status = "Acces autorizat.", info_meci=info_meci });
+            return Ok(new { Status = "Success",  Data = info_meci });
+
         }
 
 
