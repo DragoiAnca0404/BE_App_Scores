@@ -269,43 +269,39 @@ namespace BE_App_Scores.Controllers
         [HttpPost("add")]
         public IActionResult PostMeci([FromBody] AddScore item)
         {
-            // Verifică dacă activitatea există
             var activitate = _context.Activitati.FirstOrDefault(a => a.Titlu == item.DenumireActivitate);
             if (activitate == null)
             {
                 return BadRequest("Activitatea specificată nu există.");
             }
 
-            // Creează un nou meci
             var meci = new Meci
             {
                 DenumireMeci = item.DenumireMeci,
-                Data = item.DataMeci
+                Data = item.DataMeci,
+                TipMeci = item.TipMeci
             };
             _context.Meci.Add(meci);
-            _context.SaveChanges(); // Salvează pentru a obține ID-ul meciului
+            _context.SaveChanges(); 
 
             foreach (var teamScore in item.Echipe)
             {
-                // Creează echipa dacă nu există
                 var echipa = _context.Echipe.FirstOrDefault(e => e.DenumireEchipa == teamScore.DenumireEchipa);
                 if (echipa == null)
                 {
                     echipa = new Echipe { DenumireEchipa = teamScore.DenumireEchipa };
                     _context.Echipe.Add(echipa);
-                    _context.SaveChanges(); // Salvează pentru a obține ID-ul echipei
+                    _context.SaveChanges(); 
                 }
 
-                // Creează scorul
                 var scor = new Scoruri
                 {
                     Scor = teamScore.Scor,
                     Data = item.DataMeci
                 };
                 _context.Scoruri.Add(scor);
-                _context.SaveChanges(); // Salvează pentru a obține ID-ul scorului
+                _context.SaveChanges(); 
 
-                // Gestionează meciul
                 var gestionareMeci = new GestionareMeci
                 {
                     IdActivitate = activitate.Id,
@@ -322,7 +318,6 @@ namespace BE_App_Scores.Controllers
         }
 
 
-        //1.1 Creezi meciul si alegi membri din echipa
         [HttpPost("add-echipa")]
         public IActionResult CreareEchipe([FromBody] AddEchipe item)
         {
@@ -332,13 +327,12 @@ namespace BE_App_Scores.Controllers
             {
                 return BadRequest("Echipa cu acest nume există deja.");
             }
-            // Creează un nou meci
             var echipa = new Echipe
             {
                 DenumireEchipa = item.DenumireEchipa,
             };
             _context.Echipe.Add(echipa);
-            _context.SaveChanges(); // Salvează pentru a obține ID-ul meciului
+            _context.SaveChanges(); 
             return Ok(new { Message = "Meciul și scorurile au fost adăugate cu succes." });
         }
 
